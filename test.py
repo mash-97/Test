@@ -225,31 +225,170 @@ def pa(l, tabs):
 # ~ print(d[0](), d[1])
 # ~ print(d[0](), d[1])
 
-import os
-df = {}
-def dir_glob(dir_path, tabs):
-	global df
-	if(not os.path.isdir(dir_path)):
-		pass
-	print(tabs+os.path.basename(dir_path)+":")
-	entries = os.listdir(dir_path)
-	df[os.path.basename(dir_path)]  = {}
-	df[os.path.basename(dir_path)]['directories'] = []
-	df[os.path.basename(dir_path)]['files'] = []
+# ~ import os
+# ~ df = {}
+# ~ def dir_glob(dir_path, tabs):
+	# ~ global df
+	# ~ if(not os.path.isdir(dir_path)):
+		# ~ pass
+	# ~ print(tabs+os.path.basename(dir_path)+":")
+	# ~ entries = os.listdir(dir_path)
+	# ~ df[os.path.basename(dir_path)]  = {}
+	# ~ df[os.path.basename(dir_path)]['directories'] = []
+	# ~ df[os.path.basename(dir_path)]['files'] = []
 	
-	for e in entries:
-		epath = os.path.join(dir_path, e)
-		if(os.path.isfile(epath)):
-			print(tabs+"\t"+e)
-			df[os.path.basename(dir_path)]['files'].append(e)
-		elif(os.path.isdir(epath)):
-			df[os.path.basename(dir_path)]['directories'].append(e)
-			dir_glob(epath, tabs+"\t")
+	# ~ for e in entries:
+		# ~ epath = os.path.join(dir_path, e)
+		# ~ if(os.path.isfile(epath)):
+			# ~ print(tabs+"\t"+e)
+			# ~ df[os.path.basename(dir_path)]['files'].append(e)
+		# ~ elif(os.path.isdir(epath)):
+			# ~ df[os.path.basename(dir_path)]['directories'].append(e)
+			# ~ dir_glob(epath, tabs+"\t")
 		
 
-dir_glob(".dolarin", "")
-print(df)
+# ~ dir_glob(".dolarin", "")
+# ~ print(df)
+		
+
+class Seque():
+	def __init__(self, max_size=500):
+		self.list = []
+		self.max_size = max_size
+		self.size = 0
 	
+	def free(self):
+		self.list.remove(self.list[0])
+		self.size -= 1
+		
+	def en(self, item):
+		if(Seque.isSequable(item)):
+			return None
+		if(self.size < self.max_size):
+			self.list.append(item)
+		else:
+			self.free()
+			self.list.append(item)
+		self.size += 1
+	
+	def isSequable(string):
+		return "^[[" in string 
+		
+	def indexify(self, string):
+		index = self.size-1
+		for i in string.split("^[["):
+			if('A' in i):
+				if(index>0):
+					index -= 1
+			elif('B' in i):
+				if(index < self.size-1):
+					index += 1
+		return index
+		
+		
+	def get(self, string):
+		if(not Seque.isSequable(string)):
+			return string
+		
+		result = self.list[self.indexify(string)]
+		self.en(result)
+		print(result)
+		return result
+
+		
+class Eval():
+	
+	def __init__(self):
+		import inspect
+		self.count = 0
+		self.seque = Seque(max_size=2)
+		
+	def run(self):
+		i = ''
+		print(dir(i))
+		while(True):
+			self.count+=1
+			try:
+				i = input("eval[%d]: "%(self.count)).strip()
+			except EOFError:
+				break
+				
+			if(i==''):
+				pass
+			elif(i!='END'):
+				try:
+					print(eval(self.seque.get(i)))
+					self.seque.en(i)
+				except Exception as e:
+					print(e)
+
+from PyQt5.Qt import *
+from PyQt5.QtWidgets import *
+from addServiceWidget import *
+import sys
+class Window(QWidget):
+	def __init__(self):
+		super().__init__()
+		
+		layout = QVBoxLayout(self)
+		
+		self.splitter = QSplitter(self)
+		self.splitter.setOrientation(Qt.Horizontal)
+		
+		self.login = AddServiceWidget(self)
+		self.w = W1(self)
+		
+		self.splitter.addWidget(self.login)
+		self.splitter.addWidget(self.w)
+		
+		layout.addWidget(self.splitter)
+		
+		self.setMinimumSize(self.login.sizeHint().width()+self.w.sizeHint().width()+500, 
+							self.login.sizeHint().height())
+		
+class W1(QWidget):
+	def __init__(self, parent=None):
+		super().__init__(parent)
+		
+		ws = self.define_widgets()
+		
+		layout = QGridLayout()
+		
+		self.setLayout(layout)
+		
+		self.listwidget = QListWidget()
+		
+		for w in ws:
+			lt = QListWidgetItem()
+			self.listwidget.addItem(lt)
+			self.listwidget.setItemWidget(lt, w)
+			lt.setSizeHint(w.sizeHint())
+			
+		self.listwidget.clicked.connect(self.listview_clicked)
+		layout.addWidget(self.listwidget)
+		
+		self.setGeometry(0, 0, 700, 500)
+		
+	def define_widgets(self):
+		items = []
+		for i in range(1, 500):
+			l = QLabel(str(i))
+
+			l.setMinimumSize(QSize(350, 50))
+			items.append(l)
+		
+		return items
+		
+	def listview_clicked(self):
+		item = self.listwidget.currentItem()
+		print(item)
+
+if __name__ == '__main__':
+	app = QApplication(sys.argv)
+	window = Window()
+	window.show()
+	Eval().run()
+	sys.exit(app.exec_())
 
 
 		

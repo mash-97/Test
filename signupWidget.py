@@ -6,7 +6,7 @@ from user import *
 
 class SignupWidget(Widget):
 	getSigninPage = pyqtSignal()
-	getAuthorizedSignup = pyqtSignal()
+	getAuthorizedSignup = pyqtSignal([User])
 	
 	def __init__(self, parent=None):
 		super().__init__(parent)
@@ -17,6 +17,7 @@ class SignupWidget(Widget):
 	
 	def __update__(self):
 		self.username_lineEdit.clear()
+		self.username_lineEdit.setFocus(True)
 		self.password_lineEdit.clear()
 		self.confirm_password_lineEdit.clear()
 		self.status_label.clear()
@@ -93,7 +94,11 @@ class SignupWidget(Widget):
 		form_layout.addRow(self.status_label)
 		form_layout.addRow(signup_button_layout)
 		form_layout.addRow(login_button_layout)
-		
+		form_layout.setHorizontalSpacing(10)
+		form_layout.setVerticalSpacing(20)
+		l = QHBoxLayout()
+		l.addStretch(1)
+		form_layout.addRow(l)
 		
 		layout.addWidget(login_head_label)
 		layout.addSpacing(15)
@@ -119,6 +124,11 @@ class SignupWidget(Widget):
 		self.login_button.returnKeyPressed.connect(lambda: self.getSigninPage.emit())
 	
 	def _username_edited(self):
+		if not helper.isValidUsername(self.username_lineEdit.text()):
+			self.status_label.setText(S_RED_LABEL%("Username is not valid"))
+			self.username_lineEdit.setFocus(True)
+			return None
+		
 		user = User(self.username_lineEdit.text(), self.password_lineEdit.text())
 		if not User.checkAuthorizedUserNameExistency(user):
 			self.status_label.setText(S_GREEN_LABEL%("Username Checked"))
@@ -131,11 +141,23 @@ class SignupWidget(Widget):
 		if(self.password_lineEdit.text()!=self.confirm_password_lineEdit.text()):
 			self.status_label.setText(S_RED_LABEL%("Passwords Don't Match"))
 		else:
-			print("Get Authorized Signup")
-			self.getAuthorizedSignup.emit()
+			if not helper.isValidUsername(self.username_lineEdit.text()):
+				self.status_label.setText(S_RED_LABEL%("Username is not valid"))
+				self.username_lineEdit.setFocus(True)
+				return None
+			
+			user = User(self.username_lineEdit.text(), self.password_lineEdit.text())
+			User.authorizeNewUser(user)
+			user.authorize()
+			if user.authorized:
+				self.status_label.setText(S_GREEN_LABEL%("User is Authorized"))
+				self.getAuthorizedSignup.emit(user)
+			else:
+				self.status_label.setText(S_RED_LABEL%("User can't be authorized!!!"))
+				return None
 	
 	def _signup_button_clicked(self):
-		pass
+		self._confirmed_password()
 		
 	def _clear_status_label(self):
 		self.status_label.setText("")

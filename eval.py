@@ -45,10 +45,12 @@ class Seque():
 
 		
 class Eval():
-	def __init__(self):
+	
+	def __init__(self, frame):
+		import inspect
 		self.count = 0
 		self.seque = Seque(max_size=2)
-	
+		
 	def run(self):
 		i = ''
 		print(dir(i))

@@ -31,12 +31,12 @@ class Service:
 			', '.join(service_types)
 		
 		self.Date = date
-		self.ServiceTypes =  service_types
-		self.CustomerName = customer.CustomerName
-		self.CustomerNumber = customer.CustomerNumber
-		self.CustomerAddress = customer.CustomerAddress
-		self.Description = description
-		self.Cost = cost
+		self.ServiceTypes =  str(service_types).lower()
+		self.CustomerName = str(customer.CustomerName).lower()
+		self.CustomerNumber = str(customer.CustomerNumber)
+		self.CustomerAddress = str(customer.CustomerAddress).lower()
+		self.Description = str(description).lower()
+		self.Cost = float(str(cost))
 	
 	def addServiceToDB(db_path, service):
 		try:
@@ -50,7 +50,7 @@ class Service:
 			TH.pts(cf=cf(), string=("Exception: "+str(e)),	
 								mode=TH.MODE_EXCEPTION, exception=e)
 			return False
-		return True
+		return sql_helper.latestValue(db_path, Service.TABLE_NAME, "Id")
 	
 	def fetchAllServices(db_path):
 		serivces = None

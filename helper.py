@@ -8,18 +8,18 @@ from inspect import currentframe as cf, getframeinfo as gfi
 from pathlib import Path
 
 class Time:
-	week_days_names = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+	week_days_names = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 	
 	def now(get_sec=False):
 		now = time.localtime()
-		date = "/".join([str(now.tm_mday), str(now.tm_mon), str(now.tm_year)])
+		date = "-".join([str(now.tm_mday), str(now.tm_mon), str(now.tm_year)])
 		clock_time = [str(12 if now.tm_hour==24  or now.tm_hour%12==0 else now.tm_hour % 12), str(now.tm_min)]
 		if get_sec:
 			clock_time.append(str(now.tm_sec))
 		clock_time = ":".join(clock_time)
 		ampm = 'PM' if now.tm_hour//12==1 else 'AM'
 		
-		return ' :: '.join([Time.week_days_names[now.tm_wday+1], date, clock_time, ampm])
+		return ' '.join([Time.week_days_names[now.tm_wday+1], date, clock_time, ampm])
 
 class Password:
 	SALT = b'\x08z'
@@ -47,19 +47,19 @@ class Terminal:
 		
 
 
-def createFile(path):
+def confirmFile(path):
 	path = str(path)
 	try:
 		if os.path.exists(path):
 			return True
 		else:
-			open(path._str, "w")
+			open(path, "w")
 		return True
 	except:
 		pass
 	return False
 
-		
+
 def extentifyWith(path, ext):
 	path = str(path)
 	ext = str(ext)
@@ -85,7 +85,26 @@ def cpi(cur_frame):
 	s+=str(gfi(cur_frame).lineno)+"::: "
 	return s
 
-
+def allCapitalize(string):
+	_ss = []
+	for s in string.split(" "):
+		if len(s)!=0:
+			_ss.append(s.lower().capitalize())
+	return " ".join(_ss)
+	
+	
+def isValidUsername(user_name):
+	constraints = [chr(c) for c in range(ord('a'), ord('z')+1)]
+	constraints += [chr(c) for c in range(ord('A'), ord('Z')+1)]
+	constraints += [chr(c) for c in range(ord('0'), ord('9')+1)]
+	constraints += ['-', '_']
+	if(len(user_name)<1):
+		return False
+	for c in user_name:
+		if not c in constraints:
+			return False
+	
+	return True
 
 
 
@@ -144,7 +163,7 @@ class Th:
 			if re.match(r'^MODE_', d):
 				value = str(eval("Th.%s"%(d)))
 				exec("self.%s = '%s';"%(d, value))
-				
+	
 	def pts(self, cf=None, string="", mode = MODE_ASSERTION, exception=None):
 		cp = cpi(cf)
 		if self.show==True:

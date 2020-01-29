@@ -6,7 +6,7 @@ from widgetsHelper import *
 
 class LoginWidget(Widget):
 	getSignupPage = pyqtSignal()
-	getAuthorizedLogin = pyqtSignal()
+	getAuthorizedLogin = pyqtSignal([User])
 	
 	def __init__(self, parent=None):
 		super().__init__(parent)
@@ -17,6 +17,7 @@ class LoginWidget(Widget):
 	
 	def __update__(self):
 		self.username_lineEdit.clear()
+		self.username_lineEdit.setFocus(True)
 		self.password_lineEdit.clear()
 		self.status_label.clear()
 		
@@ -79,7 +80,11 @@ class LoginWidget(Widget):
 		form_layout.addRow(self.status_label)
 		form_layout.addRow(login_button_layout)
 		form_layout.addRow(signup_button_layout)
-		
+		form_layout.setHorizontalSpacing(10)
+		form_layout.setVerticalSpacing(20)
+		l = QHBoxLayout()
+		l.addStretch(1)
+		form_layout.addRow(l)
 		
 		layout.addWidget(login_head_label, 1, Qt.AlignTop)
 		layout.addSpacing(15)
@@ -102,13 +107,17 @@ class LoginWidget(Widget):
 		self.status_label.setText("")
 	
 	def _login_button_clicked(self):
+		if not helper.isValidUsername(self.username_lineEdit.text()):
+			self.status_label.setText(S_RED_LABEL%("Username is not valid"))
+			return None
+					
 		user = User(self.username_lineEdit.text(), self.password_lineEdit.text())
 		user.authorize()
 		if not user.authorized:
 			self.status_label.setText(S_RED_LABEL%("User Unauthorized"))
 		else:
 			self.status_label.setText(S_GREEN_LABEL%("User Authorized"))
-			self.getAuthorizedLogin.emit()
+			self.getAuthorizedLogin.emit(user)
 
 
 

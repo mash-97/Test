@@ -48,16 +48,25 @@ class User():
 		return False
 	
 	
-	def summerizeUserDependencies(user):
+	def confirmUserDependencies(user):
 		TH.pts(cf=cf(), string=("Summerizing dependencies for user: ", user.UserName), mode=TH.MODE_ASSERTION)
-		# Check user's authorized existency.
+		# Confirm user's authorized existency.
 		if not user.authorized:
 			TH.pts(cf=cf(), string="User isn't authorized. So no further inquiries.", mode=TH.MODE_FALSE)
 			return False
 		else:
 			TH.pts(cf=cf(), string="User is authorized", mode=TH.MODE_TRUE)
 		
-		# Check User's database file and it's dependencies
+		# Confirm User's database file and it's dependencies::
+		result = True
+		# Confirm User's database file:
+		result &= helper.confirmFile(user.DatabasePath)
+		
+		# Confirm SERVICE table's existency:
+		result &= sql_helper.createTableInDb(user.DatabasePath, Service.TABLE_NAME, Service.SCHEMA_DICT)
+		
+		return result
+	
 	def authorizeNewUser(user):
 		TH.pts(cf=cf(), string=("Authorizing new User: UserName: %s\n"%(user.UserName)), mode=TH.MODE_ASSERTION)
 		try:
@@ -78,7 +87,7 @@ class User():
 				return False
 			
 			# Create user.DatabasePath file
-			created = helper.createFile(user.DatabasePath)
+			created = helper.confirmFile(user.DatabasePath)
 			if not created:
 				TH.pts(cf=cf(), string=("Couldn't create the file: %s"%(str(user.DatabasePath))),
 					mode=TH.MODE_INABILITY)
@@ -111,13 +120,11 @@ class User():
 		result = sql_helper.getResult(User.DATABASE_NAME, statement, tuple_value)
 		
 		if(not result):
-			TH.pts(cf=cf(), string=("%s doesn't exist in the db."%(user.UserName)), mode=TH.MODE_FALSE)
 			return False
-			
-		TH.pts(cf=cf(), string=("%s exists in the db."%(user.UserName)), mode=TH.MODE_ASSERTION)
+		
 		return True
-	
-	
+
+
 	def fetchUser(user_name):
 		statement = "SELECT * FROM USER WHERE UserName=?;"
 		tuple_value = ([user_name])
@@ -127,11 +134,12 @@ class User():
 			return False
 		
 		return result
-	
-	
+
+
 	def touchInterfaceYAML(user):
 		if not user.authorized:
 			return False
 		path = helper.extentifyWith(user.DatabasePath, 'yml')
-		return helper.createFile(path)
-	
+		return helper.confirmFile(path)
+
+

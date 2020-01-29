@@ -46,7 +46,7 @@ def initializeTerminal(show_on_terminal=False):
 	# generate terminal file name with the timestamps
 	timestamps=BFP['directories']['program_terminal_outputs']/(helper.currentTime().replace(' ', '').replace('::', ''))
 	file_path = helper.extentifyWith(timestamps, "ops")
-	helper.createFile(file_path)
+	helper.confirmFile(file_path)
 	
 	# initializing global T with Terminal
 	global T
